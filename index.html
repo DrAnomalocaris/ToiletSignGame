@@ -3,69 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Toilet Sign Game</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 { margin-top: 20px; }
-    .hidden { display: none; }
-    /* Gender selection section */
-    #genderSection { margin-top: 50px; text-align: center; }
-    #genderForm {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-top: 20px;
-    }
-    #genderForm button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      outline: none;
-    }
-    #genderForm img {
-      width: 100px;
-      height: 100px;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      transition: border 0.3s;
-    }
-    #genderForm img:hover { border: 2px solid #007BFF; }
-    /* Game container styling */
-    #gameContainer { margin-top: 30px; text-align: center; }
-    #imageContainer { margin-top: 20px; }
-    table { margin: 0 auto; border-collapse: collapse; }
-    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
-    .image-button {
-      border: none;
-      background: none;
-      padding: 0;
-      cursor: pointer;
-    }
-    .image-button img {
-      max-width: 200px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .image-button img:hover {
-      transform: scale(1.05);
-      border-color: #007BFF;
-    }
-    #result { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
-    #summary { margin-top: 20px; }
-    #nextBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1em;
-    }
-  </style>
 </head>
 <body>
   <h1>Toilet Sign Game</h1>
@@ -80,6 +17,7 @@
       <button onclick="selectGender('female')">
         <img src="assets/female.png" alt="Female Icon">
       </button>
+      
     </div>
   </div>
   
@@ -93,7 +31,23 @@
     <!-- Container for the Punnett square summary -->
     <div id="summary"></div>
   </div>
-  
+
+  <footer>
+    <p>
+      This game is a fun experiment to explore which toilet sign (bathroom icon) you prefer.
+      The aim is to gather anonymous data on gender-based preferences and any potential side biases.
+      Your participation helps us better understand these trends in a lighthearted way.
+    </p>
+    <p>
+        I am sorry to exclude NBs, but this game requires a presumption of a gender binary, otherwise it does not really work :( sorry.
+    </p>
+    <p>
+      Visit my <a href="https://github.com/DrAnomalocaris/ToiletSignGame" target="_blank">GitHub</a> for more projects.
+      Download the raw data from <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQVltDe1h0P48QUpRyYMqbbrg-tyWasFEJl77VdF_RiP5WRY7EZflkUXlcUjkxBPsWTjIzGPIf-idD3/pub?gid=1801092186&single=true&output=csv" target="_blank">here</a>.
+    </p>
+  </footer>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
   <script src="constants.js"></script>
   <script src="script.js"></script>
 </body>

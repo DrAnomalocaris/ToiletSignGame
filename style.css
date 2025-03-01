@@ -1,0 +1,114 @@
+/* Ensure the HTML and body take up full height */
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+  
+  /* Use flex layout for the body */
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Existing styles… */
+  h1 {
+    margin-top: 20px;
+  }
+  .hidden {
+    display: none;
+  }
+  
+  /* Gender selection section */
+  #genderSection {
+    margin-top: 50px;
+    text-align: center;
+  }
+  #genderForm {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+  }
+  #genderForm button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+  }
+  #genderForm img {
+    width: 100px;
+    height: 100px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    transition: border 0.3s;
+  }
+  #genderForm img:hover {
+    border: 2px solid #007BFF;
+  }
+  
+  /* Game container styling */
+  #gameContainer {
+    margin-top: 30px;
+    text-align: center;
+    flex: 1; /* Allow game container to grow */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #imageContainer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  .image-button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .image-button img {
+    max-width: 200px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .image-button img:hover {
+    transform: scale(1.05);
+    border-color: #007BFF;
+  }
+  #result {
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+  
+  /* Punnett square (summary) container styling */
+  #summary {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Footer styling */
+  footer {
+    margin-top: 40px;
+    padding: 20px;
+    background: #e0e0e0;
+    width: 100%;
+    text-align: center;
+    font-size: 0.9em;
+  }
+  footer a {
+    color: #007BFF;
+    text-decoration: none;
+  }
+  footer a:hover {
+    text-decoration: underline;
+  }
+  
