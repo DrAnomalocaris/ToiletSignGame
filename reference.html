@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference - Toilet Sign Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    img {
+      max-width: 80px;
+      max-height: 80px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reference - Toilet Sign Game</h1>
+  <div id="tableContainer"></div>
+  <script src="constants.js"></script>
+
+  <script>
+    function generateReferenceTable() {
+      const totalQuestions = totalLevels;
+      const table = document.createElement('table');
+
+      // Create table header
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+
+      const thQuestion = document.createElement('th');
+      thQuestion.textContent = 'Question';
+      const thOptionA = document.createElement('th');
+      // Using small icons in the header for visual reference.
+      thOptionA.innerHTML = 'A';
+      const thOptionB = document.createElement('th');
+      thOptionB.innerHTML = 'B';
+
+      headerRow.appendChild(thQuestion);
+      headerRow.appendChild(thOptionA);
+      headerRow.appendChild(thOptionB);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create table body with one row per question
+      const tbody = document.createElement('tbody');
+      for (let q = 0; q < totalQuestions; q++) {
+        const row = document.createElement('tr');
+
+        // Question number
+        const tdQuestion = document.createElement('td');
+        tdQuestion.textContent = q;
+        row.appendChild(tdQuestion);
+
+        // Option A image
+        const tdOptionA = document.createElement('td');
+        const imgA = document.createElement('img');
+        imgA.src = `assets/${q}_a.png`;
+        imgA.alt = `Question ${q} - Option A`;
+        tdOptionA.appendChild(imgA);
+        row.appendChild(tdOptionA);
+
+        // Option B image
+        const tdOptionB = document.createElement('td');
+        const imgB = document.createElement('img');
+        imgB.src = `assets/${q}_b.png`;
+        imgB.alt = `Question ${q} - Option B`;
+        tdOptionB.appendChild(imgB);
+        row.appendChild(tdOptionB);
+
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('tableContainer');
+      const table = generateReferenceTable();
+      container.appendChild(table);
+    });
+  </script>
+</body>
+</html>
