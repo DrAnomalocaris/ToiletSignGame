@@ -118,8 +118,8 @@ function getUserId() {
       // Header row with small icons for Option A and Option B.
       html += `<tr>
                  <th></th>
-                 <th><img src="assets/${question}_a.png" alt="Option A" style="max-width:50px;"></th>
-                 <th><img src="assets/${question}_b.png" alt="Option B" style="max-width:50px;"></th>
+                 <th><img src="assets/${question}_A.png" alt="Option A" style="max-width:50px;"></th>
+                 <th><img src="assets/${question}_B.png" alt="Option B" style="max-width:50px;"></th>
                </tr>`;
       ["male", "female"].forEach(gender => {
         const aCount = (counts[gender] && counts[gender]["A"]) || 0;
@@ -180,8 +180,8 @@ function getUserId() {
     const question = questionOrder[level];
   
     // Build image paths for this question: assume "a" = male and "b" = female.
-    const imageA = `assets/${question}_a.png`;
-    const imageB = `assets/${question}_b.png`;
+    const imageA = `assets/${question}_A.png`;
+    const imageB = `assets/${question}_B.png`;
     const images = [
       { gender: 'male', src: imageA },
       { gender: 'female', src: imageB }
