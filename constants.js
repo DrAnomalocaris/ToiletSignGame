@@ -1,7 +1,7 @@
 // Global variables
 let userGender = '';
 let currentLevel = 0;
-const totalLevels = 3; // Levels: 0, 1, 2
+const totalLevels = 7; // Levels: 0, 1, 2
 let userIP = "";
 let userCountry = "";
 let correctAnswers = {};  // Majority answer per question per gender
