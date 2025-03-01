@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Toilet Sign Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 { margin-top: 20px; }
+    .hidden { display: none; }
+    /* Gender selection section */
+    #genderSection { margin-top: 50px; text-align: center; }
+    #genderForm {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+    }
+    #genderForm button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+    }
+    #genderForm img {
+      width: 100px;
+      height: 100px;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      transition: border 0.3s;
+    }
+    #genderForm img:hover { border: 2px solid #007BFF; }
+    /* Game container styling */
+    #gameContainer { margin-top: 30px; text-align: center; }
+    #imageContainer { margin-top: 20px; }
+    table { margin: 0 auto; border-collapse: collapse; }
+    td, th { padding: 8px; border: 1px solid #ccc; text-align: center; }
+    .image-button {
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .image-button img {
+      max-width: 200px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .image-button img:hover {
+      transform: scale(1.05);
+      border-color: #007BFF;
+    }
+    #result { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+    #summary { margin-top: 20px; }
+    #nextBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Toilet Sign Game</h1>
+  
+  <!-- Gender selection section -->
+  <div id="genderSection">
+    <p>Select your preferred bathroom icon:</p>
+    <div id="genderForm">
+      <button onclick="selectGender('male')">
+        <img src="assets/male.png" alt="Male Icon">
+      </button>
+      <button onclick="selectGender('female')">
+        <img src="assets/female.png" alt="Female Icon">
+      </button>
+    </div>
+  </div>
+  
+  <!-- Game container (hidden until a gender is selected) -->
+  <div id="gameContainer" class="hidden">
+    <h2>Choose the correct sign</h2>
+    <div id="imageContainer">
+      <!-- Table with randomized images will be injected here -->
+    </div>
+    <div id="result"></div>
+    <!-- Container for preloaded Punnett square summary -->
+    <div id="summary"></div>
+  </div>
+  
+  <script>
+    // Global variables
+    let userGender = '';
+    let currentLevel = 0;
+    const totalLevels = 3; // Levels: 0, 1, 2
+    let userIP = "";
+    let userCountry = "";
+    let correctAnswers = {};  // Majority answer per question per gender
+    let globalCounts = {};    // Raw counts from CSV per question per gender
+    let punnettSquares = {};  // Preloaded HTML summary for each question
+
+    // ---------------------------
+    // 1. Persistent User ID
+    // ---------------------------
+    function getUserId() {
+      let userId = localStorage.getItem('toiletSignGameUserId');
+      if (!userId) {
+        userId = generateUUID();
+        localStorage.setItem('toiletSignGameUserId', userId);
+      }
+      return userId;
+    }
+    
+    function generateUUID() {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+    }
+
+    // ---------------------------
+    // 2. Fetch IP and Country
+    // ---------------------------
+    function fetchIpAndCountry() {
+      fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+          userIP = data.ip;
+          userCountry = data.country;
+          console.log('IP:', userIP, 'Country:', userCountry);
+        })
+        .catch(error => console.error('Error retrieving IP info:', error));
+    }
+    fetchIpAndCountry();
+
+    // ---------------------------
+    // 3. Fetch and Process CSV Data
+    // ---------------------------
+    function fetchAndProcessResults() {
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVltDe1h0P48QUpRyYMqbbrg-tyWasFEJl77VdF_RiP5WRY7EZflkUXlcUjkxBPsWTjIzGPIf-idD3/pub?gid=1801092186&single=true&output=csv';
+      fetch(csvUrl)
+        .then(response => response.text())
+        .then(csvText => {
+          parseCSVAndComputeMajority(csvText);
+          preloadPunnettSquares();
+        })
+        .catch(err => console.error("Error fetching CSV:", err));
+    }
+    
+    function parseCSVAndComputeMajority(csvText) {
+      const lines = csvText.split("\n").filter(line => line.trim().length > 0);
+      if (lines.length < 2) return;
+      const header = lines[0].split(",").map(s => s.trim());
+      const questionIdx = header.indexOf("question");
+      const genderIdx = header.indexOf("gender");
+      const answerIdx = header.indexOf("answer");
+      const userIdIdx = header.indexOf("userId");
+      
+      // Structure: counts[question][gender]["A" or "B"]
+      const counts = {};
+      const seen = {};
+      
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(",").map(s => s.trim());
+        const question = row[questionIdx];
+        const gender = row[genderIdx];
+        const answer = row[answerIdx];
+        const userId = userIdIdx >= 0 ? row[userIdIdx] : null;
+        if (!counts[question]) {
+          counts[question] = { male: { A: 0, B: 0 }, female: { A: 0, B: 0 } };
+          seen[question] = new Set();
+        }
+        if (userId && seen[question].has(userId)) continue;
+        if (userId) seen[question].add(userId);
+        if ((gender === "male" || gender === "female") && (answer === "A" || answer === "B")) {
+          counts[question][gender][answer]++;
+        }
+      }
+      globalCounts = counts;
+      
+      // Compute majority answers with normalization and tie-breaking.
+      for (const question in counts) {
+        correctAnswers[question] = {};
+        const result = {};
+        for (const gender of ["male", "female"]) {
+          const aCount = counts[question][gender]["A"];
+          const bCount = counts[question][gender]["B"];
+          const total = aCount + bCount;
+          const ratio = total > 0 ? aCount / total : 0.5;
+          result[gender] = ratio >= 0.5 ? "A" : "B";
+          result[gender + "_excess"] = Math.abs(ratio - 0.5);
+        }
+        // If both genders choose the same answer, compare deviation and flip the one with lower excess.
+        if (result["male"] === result["female"]) {
+          if (result["male_excess"] === result["female_excess"]) {
+            correctAnswers[question]["male"] = result["male"];
+            correctAnswers[question]["female"] = result["male"] === "A" ? "B" : "A";
+          } else if (result["male_excess"] > result["female_excess"]) {
+            correctAnswers[question]["male"] = result["male"];
+            correctAnswers[question]["female"] = result["male"] === "A" ? "B" : "A";
+          } else {
+            correctAnswers[question]["female"] = result["female"];
+            correctAnswers[question]["male"] = result["female"] === "A" ? "B" : "A";
+          }
+        } else {
+          correctAnswers[question]["male"] = result["male"];
+          correctAnswers[question]["female"] = result["female"];
+        }
+      }
+      console.log("Normalized majority answers computed:", correctAnswers);
+    }
+    
+    // Preload a Punnett square summary for each question.
+    function preloadPunnettSquares() {
+      for (const question in globalCounts) {
+        const counts = globalCounts[question];
+        let html = '<table>';
+        html += '<tr><th></th><th>Option A</th><th>Option B</th></tr>';
+        for (const gender of ["male", "female"]) {
+          html += `<tr><th>${gender.charAt(0).toUpperCase() + gender.slice(1)}</th>`;
+          html += `<td>${counts[gender]["A"]}</td>`;
+          html += `<td>${counts[gender]["B"]}</td></tr>`;
+        }
+        html += '</table>';
+        punnettSquares[question] = html;
+      }
+      console.log("Preloaded Punnett squares:", punnettSquares);
+    }
+    
+    fetchAndProcessResults();
+
+    // ---------------------------
+    // 4. Game Logic & UI
+    // ---------------------------
+    function selectGender(gender) {
+      userGender = gender;
+      document.getElementById('genderSection').classList.add('hidden');
+      document.getElementById('gameContainer').classList.remove('hidden');
+      loadLevel(currentLevel);
+    }
+    
+    function loadLevel(level) {
+      const imageContainer = document.getElementById('imageContainer');
+      const resultDiv = document.getElementById('result');
+      imageContainer.innerHTML = '';
+      resultDiv.textContent = '';
+      // Clear summary and next button if present.
+      const summaryDiv = document.getElementById('summary');
+      if (summaryDiv) summaryDiv.innerHTML = '';
+      const existingNext = document.getElementById('nextBtn');
+      if (existingNext) existingNext.remove();
+      
+      if (level >= totalLevels) {
+        imageContainer.innerHTML = '<p>Game Over! Thanks for playing.</p>';
+        return;
+      }
+      
+      const imageA = `assets/${level}_a.png`;
+      const imageB = `assets/${level}_b.png`;
+      const images = [
+        { gender: 'male', src: imageA },
+        { gender: 'female', src: imageB }
+      ];
+      images.sort(() => Math.random() - 0.5);
+      
+      const table = document.createElement('table');
+      const row = document.createElement('tr');
+      images.forEach(imgObj => {
+        const cell = document.createElement('td');
+        const button = document.createElement('button');
+        button.className = 'image-button';
+        const img = document.createElement('img');
+        img.src = imgObj.src;
+        img.alt = `Toilet Sign ${imgObj.gender}`;
+        button.appendChild(img);
+        // Allow clicking only if not answered yet.
+        button.addEventListener('click', function() {
+          handleChoice(imgObj.gender, this);
+        });
+        cell.appendChild(button);
+        row.appendChild(cell);
+      });
+      table.appendChild(row);
+      imageContainer.appendChild(table);
+    }
+    
+    function handleChoice(selectedGender, buttonElement) {
+      // Disable all buttons so answer cannot be changed.
+      document.querySelectorAll('.image-button').forEach(btn => btn.disabled = true);
+      
+      const resultDiv = document.getElementById('result');
+      const img = buttonElement.querySelector('img');
+      let result;
+      
+      // Look up the majority answer for this question and user gender.
+      const majorityAnswer = correctAnswers[currentLevel] && correctAnswers[currentLevel][userGender];
+      if (majorityAnswer) {
+        if (selectedGender === majorityAnswer) {
+          resultDiv.textContent = 'You win!';
+          img.style.border = '2px solid green';
+          result = "A";
+        } else {
+          resultDiv.textContent = 'You lose!';
+          img.style.border = '2px solid red';
+          result = "B";
+        }
+      } else {
+        // Fallback if CSV data not loaded.
+        if (selectedGender === userGender) {
+          resultDiv.textContent = 'You win!';
+          img.style.border = '2px solid green';
+          result = "A";
+        } else {
+          resultDiv.textContent = 'You lose!';
+          img.style.border = '2px solid red';
+          result = "B";
+        }
+      }
+      img.style.transform = 'scale(1.1)';
+      sendResultToSheet(currentLevel, userGender, result);
+      // Display preloaded Punnett square for this question if available.
+      displayPunnettSquare(currentLevel);
+      
+      // Add a Next button.
+      const nextBtn = document.createElement('button');
+      nextBtn.id = 'nextBtn';
+      nextBtn.textContent = 'Next';
+      nextBtn.addEventListener('click', function() {
+        // Remove summary and next button, then load next level.
+        const summaryDiv = document.getElementById('summary');
+        if (summaryDiv) summaryDiv.innerHTML = '';
+        this.remove();
+        currentLevel++;
+        loadLevel(currentLevel);
+      });
+      document.getElementById('gameContainer').appendChild(nextBtn);
+    }
+    
+    function displayPunnettSquare(question) {
+      const summaryDiv = document.getElementById('summary');
+      summaryDiv.innerHTML = ''; // Clear previous summary
+      if (punnettSquares[question]) {
+        summaryDiv.innerHTML = punnettSquares[question];
+      } else {
+        summaryDiv.textContent = "No summary available.";
+      }
+    }
+    
+    // ---------------------------
+    // 5. Submit Data to Endpoint
+    // ---------------------------
+    function sendResultToSheet(level, gender, answer) {
+      const url = 'https://script.google.com/macros/s/AKfycbxiN2kF-qfoYdD0OcbNn_FaYHvuLBkdDcXVnQAQFjpB6JlJ2MCmecO59EOlql3Hr3Ox/exec?gid=1801092186';
+      const userId = getUserId();
+      const formData = new URLSearchParams();
+      formData.append('gender', gender);
+      formData.append('question', level.toString());
+      formData.append('answer', answer);
+      formData.append('ip', userIP);
+      formData.append('country', userCountry);
+      formData.append('userId', userId);
+      
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      })
+      .then(response => response.text())
+      .then(data => console.log('Response:', data))
+      .catch(error => console.error('Error submitting form:', error));
+    }
+  </script>
+</body>
+</html>
