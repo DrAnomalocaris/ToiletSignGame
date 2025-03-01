@@ -1,4 +1,3 @@
-
 // ---------------------------
 // 1. Persistent User ID
 // ---------------------------
@@ -140,15 +139,8 @@ function getUserId() {
   // ---------------------------
   // 4. Game Logic & UI
   // ---------------------------
-  
-  // Helper function: Fisher-Yates shuffle
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+  let scoreWins = 0;
+  let scoreTotal = totalLevels;  // totalLevels is already defined globally
   
   function selectGender(gender) {
     userGender = gender;
@@ -161,6 +153,14 @@ function getUserId() {
     loadLevel(currentLevel);
   }
   
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+  
   function loadLevel(level) {
     const imageContainer = document.getElementById('imageContainer');
     const resultDiv = document.getElementById('result');
@@ -171,15 +171,16 @@ function getUserId() {
     const existingNext = document.getElementById('nextBtn');
     if (existingNext) existingNext.remove();
   
+    // If all questions have been answered, show final results.
     if (level >= totalLevels) {
-      imageContainer.innerHTML = '<p>Game Over! Thanks for playing.</p>';
+      displayFinalResults();
       return;
     }
-    
+  
     // Get the question number from the randomized order.
     const question = questionOrder[level];
   
-    // Build image paths for this question: assume "a" = male and "b" = female.
+    // Build image paths for this question: assume "A" = male and "B" = female.
     const imageA = `assets/${question}_A.png`;
     const imageB = `assets/${question}_B.png`;
     const images = [
@@ -227,6 +228,7 @@ function getUserId() {
         resultDiv.textContent = 'You win!';
         img.style.border = '2px solid green';
         result = "A";
+        scoreWins++; // Increment wins if correct.
       } else {
         resultDiv.textContent = 'You lose!';
         img.style.border = '2px solid red';
@@ -238,6 +240,7 @@ function getUserId() {
         resultDiv.textContent = 'You win!';
         img.style.border = '2px solid green';
         result = "A";
+        scoreWins++;
       } else {
         resultDiv.textContent = 'You lose!';
         img.style.border = '2px solid red';
@@ -274,6 +277,29 @@ function getUserId() {
     }
   }
   
+  // Final results page showing percentage correct and a funny message.
+  function displayFinalResults() {
+    const imageContainer = document.getElementById('imageContainer');
+    const subtitleContainer = document.getElementById('subtitle');
+
+    const resultDiv = document.getElementById('result');
+    imageContainer.innerHTML = '';
+    resultDiv.innerHTML = '';
+  
+    const finalPercentage = (scoreWins / scoreTotal) * 100;
+    let finalMessage = "";
+  
+    if (finalPercentage >= 85) {
+      finalMessage = `Game Over! You're a champion at gender! You are confident to never get a toilet wrong`;
+    } else if (finalPercentage >= 25) {
+      finalMessage = `Game Over! Gender is meaningless...`;
+    } else {
+      finalMessage = `Game Over! Are you sure you're the right gender?`;
+    }
+    subtitleContainer.innerHTML=`${finalPercentage.toFixed(0)}%`;
+    imageContainer.innerHTML = `${finalMessage}`;
+  resultDiv.innerHTML = '';  }
+  
   // ---------------------------
   // 5. Submit Data to Endpoint
   // ---------------------------
@@ -284,7 +310,7 @@ function getUserId() {
     formData.append('gender', gender);
     formData.append('question', question.toString());
     formData.append('answer', answer);
-    formData.append('side', side);
+    formData.append('side', side); // Include side information ("left" or "right")
     formData.append('ip', userIP);
     formData.append('country', userCountry);
     formData.append('userId', userId);
@@ -298,3 +324,4 @@ function getUserId() {
     .then(data => console.log('Response:', data))
     .catch(error => console.error('Error submitting form:', error));
   }
+  
