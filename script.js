@@ -75,7 +75,6 @@ function getUserId() {
       }
     }
     globalCounts = counts;
-    console.log("Counts:", counts);
   
     // Compute majority answers with normalization and tie-breaking.
     for (const question in counts) {
@@ -180,12 +179,11 @@ function getUserId() {
     // Get the question number from the randomized order.
     const question = questionOrder[level];
   
-    // Build image paths for this question: assume "A" = male and "B" = female.
     const imageA = `assets/${question}_A.png`;
     const imageB = `assets/${question}_B.png`;
     const images = [
-      { gender: 'male', src: imageA },
-      { gender: 'female', src: imageB }
+      { gender: 'A', src: imageA },
+      { gender: 'B', src: imageB }
     ];
     images.sort(() => Math.random() - 0.5);
   
@@ -198,7 +196,7 @@ function getUserId() {
       button.className = 'image-button';
       const img = document.createElement('img');
       img.src = imgObj.src;
-      img.alt = `Toilet Sign ${imgObj.gender}`;
+      img.alt = imgObj.gender;
       button.appendChild(img);
       // Determine the side by checking the index of the parent cell.
       button.addEventListener('click', function() {
@@ -214,17 +212,22 @@ function getUserId() {
   }
   
   function handleChoice(selectedGender, buttonElement, side, question) {
+
+    const altText = buttonElement.querySelector('img').alt;
+
+    console.log(altText);
     // Disable all answer buttons so answer cannot be changed.
     document.querySelectorAll('.image-button').forEach(btn => btn.disabled = true);
   
     const resultDiv = document.getElementById('result');
     const img = buttonElement.querySelector('img');
     let result;
-  
+    console.log( correctAnswers[question][userGender]);
     // Look up the majority answer for this question and user gender.
     const majorityAnswer = correctAnswers[question] && correctAnswers[question][userGender];
+    console.log(majorityAnswer);
     if (majorityAnswer) {
-      if (selectedGender === majorityAnswer) {
+      if (altText === majorityAnswer) {
         resultDiv.textContent = 'You win!';
         img.style.border = '2px solid green';
         result = "A";
